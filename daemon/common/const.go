@@ -5,4 +5,5 @@ const (
 	Variables = "/var/local/emhttp/var.ini"
 	Network   = "/var/local/emhttp/network.ini"
 	Myservers = "/var/local/emhttp/myservers.cfg"
+	Socket    = "/var/run/controlrd-api.sock"
 )

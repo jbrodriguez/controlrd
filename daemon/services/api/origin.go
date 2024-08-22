@@ -6,7 +6,7 @@ import (
 )
 
 func (a *Api) getOrigin() *dto.Origin {
-	if a.origin != nil {
+	if a.origin == nil {
 		origin := lib.GetOrigin()
 		if origin != nil {
 			a.origin = origin
