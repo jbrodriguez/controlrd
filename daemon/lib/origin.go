@@ -11,12 +11,18 @@ import (
 )
 
 func GetOrigin() *dto.Origin {
-	exists, err := Exists(common.Nginx)
+	address, err := getIPAddress()
 	if err != nil {
 		return nil
 	}
 
-	address, err := getIPAddress()
+	origin, err := getMyUnraidNetURL()
+	if origin != nil {
+		origin.Address = address
+		return origin
+	}
+
+	exists, err := Exists(common.Nginx)
 	if err != nil {
 		return nil
 	}
@@ -42,6 +48,37 @@ func GetOrigin() *dto.Origin {
 	} else {
 		return getOriginFromFile(address)
 	}
+}
+
+func getMyUnraidNetURL() (*dto.Origin, error) {
+	myservers, err := ini.LoadFile(common.Myservers)
+	if err != nil {
+		return nil, err
+	}
+
+	remotes, _ := myservers.Get("remote", "allowedOrigins")
+	origins := strings.Split(remotes, ",")
+	origin := ""
+	for _, o := range origins {
+		origin = strings.TrimSpace(o)
+
+		// Check if the origin ends with '.myunraid.net' and contains both an IP address and a hash
+		if strings.HasSuffix(origin, ".myunraid.net") && strings.Contains(origin, "-") && strings.Contains(origin, ".") {
+			origin = o
+			break
+		}
+	}
+
+	host := origin
+	origin = strings.ReplaceAll(origin, "https://", "")
+	origin = strings.ReplaceAll(origin, "myunraid.net", "")
+
+	return &dto.Origin{
+		Protocol: "https",
+		Host:     host,
+		Port:     "443",
+		Name:     origin,
+	}, nil
 }
 
 func getIPAddress() (string, error) {
