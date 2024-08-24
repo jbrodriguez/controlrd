@@ -14,35 +14,51 @@ import (
 )
 
 func GetOrigin() (*dto.Origin, error) {
+	var origin dto.Origin
+
 	address, err := getIPAddress()
 	if err != nil {
-		return nil, err
+		origin.ErrorCode = "ipaddress"
+		origin.ErrorText = err.Error()
+		return &origin, err
 	}
 
 	base, ssl, err := getOriginFromVarIni(address)
 	if err != nil {
-		return nil, err
+		origin.ErrorCode = "varini"
+		origin.ErrorText = err.Error()
+		return &origin, err
 	}
+
+	origin.Host = base.Host
+	origin.Protocol = base.Protocol
+	origin.Port = base.Port
+	origin.Name = base.Name
+	origin.Address = base.Address
 
 	if ssl {
 		myservers, err := getMyUnraidNetURL()
 		if err != nil {
+			origin.ErrorCode = "myservers"
+			origin.ErrorText = err.Error()
 			return nil, err
 		}
-		base.Host = myservers.Host
-		base.Port = myservers.Port
+		origin.Host = myservers.Host
+		origin.Port = myservers.Port
 	} else {
 		host, err := getNetworkNameFromHosts()
 		if err != nil {
+			origin.ErrorCode = "etchosts"
+			origin.ErrorText = err.Error()
 			return nil, err
 		}
 
 		if host != "" {
-			base.Host = host
+			origin.Host = host
 		}
 	}
 
-	return base, nil
+	return &origin, nil
 }
 
 func getIPAddress() (string, error) {

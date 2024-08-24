@@ -31,6 +31,8 @@ func (a *Api) Run() error {
 	// make sure there's no socket file
 	os.Remove(common.Socket)
 
+	go a.buildQRCode()
+
 	go a.loop()
 
 	return nil
