@@ -36,3 +36,27 @@ func GetParams(regEx, url string) (paramsMap map[string]string) {
 	}
 	return paramsMap
 }
+
+// GetCmdOutput -
+func GetCmdOutput(command string, args ...string) []string {
+	lines := make([]string, 0)
+
+	if len(args) > 0 {
+		ShellEx(command, func(line string) {
+			lines = append(lines, line)
+		}, args...)
+	} else {
+		Shell(command, func(line string) {
+			lines = append(lines, line)
+		})
+	}
+
+	return lines
+}
+
+func Round(a float64) int {
+	if a < 0 {
+		return int(a - 0.5)
+	}
+	return int(a + 0.5)
+}

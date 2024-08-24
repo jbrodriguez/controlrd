@@ -12,10 +12,19 @@ import (
 )
 
 func (a *Api) getInfo() *dto.Info {
+	prefs := getPrefs()
+
+	sensorReadings := a.sensor.GetReadings(prefs)
+	upsReadings := a.ups.GetStatus()
+
+	samples := append(sensorReadings, upsReadings...)
+
 	return &dto.Info{
+		Version:  2,
 		Wake:     getMac(),
-		Prefs:    getPrefs(),
-		Features: _getFeatures(),
+		Prefs:    prefs,
+		Samples:  samples,
+		Features: getFeatures(),
 	}
 }
 

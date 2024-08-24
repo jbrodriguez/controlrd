@@ -10,13 +10,18 @@ import (
 	"github.com/jbrodriguez/controlrd/daemon/domain"
 	"github.com/jbrodriguez/controlrd/daemon/dto"
 	"github.com/jbrodriguez/controlrd/daemon/logger"
+	"github.com/jbrodriguez/controlrd/daemon/plugins/sensor"
+	"github.com/jbrodriguez/controlrd/daemon/plugins/ups"
 )
 
 type Api struct {
 	ctx *domain.Context
 
 	listener net.Listener
-	origin   *dto.Origin
+
+	origin *dto.Origin
+	sensor sensor.Sensor
+	ups    ups.Ups
 
 	// mailbox chan any
 }
@@ -30,6 +35,9 @@ func Create(ctx *domain.Context) *Api {
 func (a *Api) Run() error {
 	// make sure there's no socket file
 	os.Remove(common.Socket)
+
+	a.sensor = a.createSensor()
+	a.ups = a.createUps()
 
 	go a.buildQRCode()
 
@@ -77,18 +85,63 @@ func (a *Api) handleConnection(conn net.Conn) {
 
 	var resp []byte
 	switch req.Action {
+	case "get_info":
+		reply := a.getInfo()
+		resp, _ = json.Marshal(reply)
+
 	case "get_origin":
 		reply := a.getOrigin()
-		logger.Yellow(" sending %+v", reply)
 		resp, _ = json.Marshal(reply)
-		// resp, _ = json.Marshal(map[string]string{
-		// 	"message": "Kernel version",
-		// 	"kernel":  "4.19.76-linuxkit",
-		// })
+
 	default:
 		resp, _ = json.Marshal(map[string]string{"error": "Unsupported action"})
 	}
 
+	logger.Yellow(" sending %+v", string(resp))
+
 	conn.Write(resp)
 	conn.Write([]byte("\n"))
+}
+
+func (a *Api) createSensor() sensor.Sensor {
+	s, err := sensor.IdentifySensor()
+	if err != nil {
+		logger.Yellow("error identifying sensor: %s", err)
+	} else {
+		switch s {
+		case sensor.SYSTEM:
+			logger.Blue("created system sensor ...")
+			return sensor.NewSystemSensor()
+		case sensor.IPMI:
+			logger.Blue("created ipmi sensor ...")
+			return sensor.NewIpmiSensor()
+		}
+	}
+
+	logger.Blue("no sensor detected ...")
+
+	return sensor.NewNoSensor()
+}
+
+func (a *Api) createUps() ups.Ups {
+	logger.Blue("showing ups %t ...", a.ctx.Config.ShowUps)
+	if a.ctx.Config.ShowUps {
+		u, err := ups.IdentifyUps()
+		if err != nil {
+			logger.Yellow("error identifying ups: %s", err)
+		} else {
+			switch u {
+			case ups.APC:
+				logger.Blue("created apc ups ...")
+				return ups.NewApc()
+			case ups.NUT:
+				logger.Blue("created nut ups ...")
+				return ups.NewNut()
+			}
+		}
+	}
+
+	logger.Blue("no ups detected ...")
+
+	return ups.NewNoUps()
 }
