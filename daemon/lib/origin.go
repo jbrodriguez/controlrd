@@ -1,7 +1,10 @@
 package lib
 
 import (
+	"bufio"
+	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/jbrodriguez/controlrd/daemon/common"
@@ -10,75 +13,36 @@ import (
 	"github.com/vaughan0/go-ini"
 )
 
-func GetOrigin() *dto.Origin {
+func GetOrigin() (*dto.Origin, error) {
 	address, err := getIPAddress()
-	if err != nil {
-		return nil
-	}
-
-	origin, err := getMyUnraidNetURL()
-	if origin != nil {
-		origin.Address = address
-		return origin
-	}
-
-	exists, err := Exists(common.Nginx)
-	if err != nil {
-		return nil
-	}
-
-	if exists {
-		data, err := os.ReadFile(common.Nginx)
-		if err != nil {
-			return nil
-		}
-
-		origin := string(data)
-		origin = strings.Replace(origin, "\n", "", -1)
-
-		params := GetParams(`(?P<protocol>^[^:]*)://(?P<name>[^\.]*)\.(?P<tld>[^:]*):(?P<port>.*)`, origin)
-
-		return &dto.Origin{
-			Protocol: params["protocol"],
-			Host:     params["name"],
-			Port:     params["port"],
-			Name:     params["name"],
-			Address:  address,
-		}
-	} else {
-		return getOriginFromFile(address)
-	}
-}
-
-func getMyUnraidNetURL() (*dto.Origin, error) {
-	myservers, err := ini.LoadFile(common.Myservers)
 	if err != nil {
 		return nil, err
 	}
 
-	remotes, _ := myservers.Get("remote", "allowedOrigins")
-	origins := strings.Split(remotes, ",")
-	origin := ""
-	for _, o := range origins {
-		origin = strings.TrimSpace(o)
+	base, ssl, err := getOriginFromVarIni(address)
+	if err != nil {
+		return nil, err
+	}
 
-		// Check if the origin ends with '.myunraid.net' and contains both an IP address and a hash
-		if strings.HasSuffix(origin, ".myunraid.net") && strings.Contains(origin, "-") && strings.Contains(origin, ".") {
-			origin = o
-			break
+	if ssl {
+		myservers, err := getMyUnraidNetURL()
+		if err != nil {
+			return nil, err
+		}
+		base.Host = myservers.Host
+		base.Port = myservers.Port
+	} else {
+		host, err := getNetworkNameFromHosts()
+		if err != nil {
+			return nil, err
+		}
+
+		if host != "" {
+			base.Host = host
 		}
 	}
 
-	host := origin
-	origin = strings.ReplaceAll(origin, "https://", "")
-	origin = strings.ReplaceAll(origin, "myunraid.net", "")
-
-	return &dto.Origin{
-		Protocol: "https",
-		Host:     host,
-		Port:     "443",
-		Name:     origin,
-	}, nil
+	return base, nil
 }
 
 func getIPAddress() (string, error) {
@@ -94,10 +58,42 @@ func getIPAddress() (string, error) {
 	return ipaddress, nil
 }
 
-func getOriginFromFile(address string) *dto.Origin {
+func getMyUnraidNetURL() (*dto.Origin, error) {
+	myservers, err := ini.LoadFile(common.Myservers)
+	if err != nil {
+		return nil, err
+	}
+
+	remotes, _ := myservers.Get("remote", "allowedOrigins")
+	origins := strings.Split(remotes, ",")
+	origin := ""
+
+	// Regular expression to match the specific URL format
+	re := regexp.MustCompile(`https://\d+-\d+-\d+-\d+\.[a-f0-9]{40}\.myunraid\.net`)
+
+	// Find the specific URL we're looking for
+	for _, url := range origins {
+		if re.MatchString(url) {
+			origin = url
+		}
+	}
+
+	host := origin
+	if host == "" {
+		return nil, fmt.Errorf("specific myunraid.net URL not found")
+	}
+
+	return &dto.Origin{
+		Protocol: "https",
+		Host:     host,
+		Port:     "443",
+	}, nil
+}
+
+func getOriginFromVarIni(address string) (*dto.Origin, bool, error) {
 	ident, err := ini.LoadFile(common.Variables)
 	if err != nil {
-		return nil
+		return nil, false, err
 	}
 
 	var usessl, portnossl, portssl, protocol, name, port string
@@ -127,5 +123,35 @@ func getOriginFromFile(address string) *dto.Origin {
 		Port:     port,
 		Name:     name,
 		Address:  address,
+	}, usessl != "no", nil
+}
+
+func getNetworkNameFromHosts() (string, error) {
+	file, err := os.Open("/etc/hosts")
+	if err != nil {
+		return "", err
 	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "#") || len(line) == 0 {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) >= 3 && fields[0] == "127.0.0.1" {
+			for _, field := range fields[1:] {
+				if strings.Contains(field, ".local") {
+					return field, nil
+				}
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return "", nil // Return empty string if no matching entry found
 }
