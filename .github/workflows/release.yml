@@ -1,0 +1,48 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      patch:
+        description: Patch letter to apply to version.
+        type: string
+        default: ""
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    env:
+      CONTROLR_PAT: ${{ secrets.CONTROLRD_PAT }}
+
+    steps:
+      - name: checkout public repo
+        uses: actions/checkout@v4
+        with:
+          repository: jbrodriguez/controlrd
+          token: ${{ env.CONTROLRD_PAT }}
+
+      - name: commit version
+        run: |
+          git config --global user.email "jbrodriguez@gmail.com"
+          git config --global user.name "Juan B. Rodriguez"
+          echo "v$(date '+%Y.%m.%d')${{ github.event.inputs.patch }}" > VERSION
+          git add .
+          git commit -m "chore: bump version to v$(date '+%Y.%m.%d')${{ github.event.inputs.patch }}"
+          export GITHUB_TOKEN="${{ secrets.CONTROLRD_PAT }}"
+          git push
+
+      - name: checkout private repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: set up go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+
+      - name: build app
+        run: |
+          ./meta/scripts/deploy ${{ inputs.patch }}
