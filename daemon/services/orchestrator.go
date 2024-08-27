@@ -21,7 +21,7 @@ func CreateOrchestrator(ctx *domain.Context) *Orchestrator {
 }
 
 func (o *Orchestrator) Run() error {
-	logger.Blue("starting controlr %s ...", o.ctx.Version)
+	logger.Blue("starting controlrd %s ...", o.ctx.Version)
 
 	api := api.Create(o.ctx)
 

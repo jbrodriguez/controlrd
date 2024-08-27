@@ -1,3 +1,3 @@
-**ControlR**
+**controlrd**
 
-ControlR is a companion plugin for the ControlR app.
+controlrd is a companion plugin for the ControlR app.

@@ -2,7 +2,7 @@
 
 patch="${1:-}"
 
-name="controlr"
+name="controlrd"
 
 # Get the current date in the specified format
 version=$(date '+%Y.%m.%d')
@@ -13,11 +13,11 @@ version=$(date '+%Y.%m.%d')
 go build fmt
 env CGO_ENABLED=0 go build -ldflags "-X main.Version=v$version$patch" -gcflags "all=-trimpath=$GOPATH" -v -o meta/plugin/$name
 
-echo "v$version$patch" > meta/plugin/VERSION
+echo "v$version$patch" >meta/plugin/VERSION
 
 cd meta
-mv plugin controlr
-tar --owner=root --group=root -czvf ../$name-v$version$patch.tgz controlr
+mv plugin $name
+tar --owner=root --group=root -czvf ../$name-v$version$patch.tgz $name
 cd ..
 
 # Calculate the MD5 checksum for the plugin
@@ -37,7 +37,7 @@ awk -v version="v$version$patch" -v md5="$md5" -v changes="$changes" '
     gsub(/##changes##/, changes);
     print $0;
   }
-' meta/template/$name.plg > $name.plg
+' meta/template/$name.plg >$name.plg
 
 # tag the release
 git tag v$version$patch
@@ -45,13 +45,14 @@ git push origin v$version$patch
 
 # release the plugin
 # auth with the public repo pat
-echo $CONTROLR_PAT | gh auth login --with-token
+echo $CONTROLRD_PAT | gh auth login --with-token
 
 # Create a release with the tag name
-gh release create v$version$patch --notes "$changes" --repo "github.com/jbrodriguez/controlr"
+gh release create v$version$patch --notes "$changes" --repo "github.com/jbrodriguez/$name"
 
 # Upload the TGZ artifact
-gh release upload v$version$patch ./$name-v$version$patch.tgz --clobber --repo "github.com/jbrodriguez/controlr"
+gh release upload v$version$patch ./$name-v$version$patch.tgz --clobber --repo "github.com/jbrodriguez/$name"
 
 # Upload the XML artifact
-gh release upload v$version$patch ./$name.plg --clobber --repo "github.com/jbrodriguez/controlr"
+gh release upload v$version$patch ./$name.plg --clobber --repo "github.com/jbrodriguez/$name"
+

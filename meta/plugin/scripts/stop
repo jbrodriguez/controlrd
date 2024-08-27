@@ -1,18 +1,18 @@
 #!/bin/bash
 
-prog="controlr"
+prog="controlrd"
 running=$(pidof $prog | wc -w)
 
 # no-op if already running
 if [ $running -ge 1 ]; then
-TIMER=0
-while `killall $prog 2>/dev/null`; do
-	sleep 1
-	TIMER=$((TIMER+1))
-	if [ $TIMER -ge 30 ]; then
-		killall -9 $prog
-		sleep 1
-		break
-	fi
-done
+  TIMER=0
+  while $(killall $prog 2>/dev/null); do
+    sleep 1
+    TIMER=$((TIMER + 1))
+    if [ $TIMER -ge 30 ]; then
+      killall -9 $prog
+      sleep 1
+      break
+    fi
+  done
 fi

@@ -1,11 +1,11 @@
 <?xml version='1.0' standalone='yes'?>
 
 <!DOCTYPE PLUGIN [
-<!ENTITY name        "controlr">
+<!ENTITY name        "controlrd">
 <!ENTITY author      "Juan B. Rodriguez">
 <!ENTITY version     "##version##">
 <!ENTITY launch      "Settings/&name;">
-<!ENTITY pluginURL   "https://github.com/jbrodriguez/controlr/releases/latest/download/&name;.plg">
+<!ENTITY pluginURL   "https://github.com/jbrodriguez/controlrd/releases/latest/download/&name;.plg">
 <!ENTITY bundle      "&name;-&version;.tgz">
 <!ENTITY md5         "##md5##">
 ]>
@@ -22,33 +22,31 @@
 </CHANGES>
 
 <!--
-ControlR is a companion plugin for the ControlR app.
+controlrd is a companion plugin for the ControlR app.
 -->
 
 <!--
-Get the ControlR bundle.
+Get the controlrd bundle.
 -->
 <FILE Name="/boot/config/plugins/&name;/&bundle;">
-<URL>"https://github.com/jbrodriguez/controlr/releases/download/&version;/&bundle;"</URL>
+<URL>"https://github.com/jbrodriguez/&name;/releases/download/&version;/&bundle;"</URL>
 <MD5>&md5;</MD5>
 </FILE>
 
 <!-- Install default plugin cfg  -->
-<FILE Name="/boot/config/plugins/controlr/controlr.cfg">
+<FILE Name="/boot/config/plugins/&name;/&name;.cfg">
 <INLINE>
 <![CDATA[
 SERVICE="disable"
-PORT="2378"
 UPS="enable"
 ]]>
 </INLINE>
 </FILE>
 
 <!-- Install default plugin env  -->
-<FILE Name="/boot/config/plugins/controlr/controlr.env">
+<FILE Name="/boot/config/plugins/&name;/&name;.env">
 <INLINE>
 <![CDATA[
-PORT=2378
 SHOW_UPS=true
 ]]>
 </INLINE>
@@ -59,9 +57,9 @@ Prepare for installation.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
-running=$(pidof controlr | wc -w)
+running=$(pidof &name; | wc -w)
 
-killall controlr 2>/dev/null
+killall controlrd 2>/dev/null
 
 # Remove emhttp files so we can re-install.
 rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
@@ -79,7 +77,7 @@ fi
 
 echo ""
 echo "-----------------------------------------------------------"
-echo " ControlR has been installed."
+echo " &name; has been installed."
 echo " Copyright (c) &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
@@ -99,7 +97,7 @@ rm -rf /boot/config/plugins/&name;
 
 echo ""
 echo "-----------------------------------------------------------"
-echo " ControlR has been removed."
+echo " &name; has been removed."
 echo " Copyright (c) &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
@@ -107,16 +105,15 @@ echo ""
 </INLINE>
 </FILE>
 
-<FILE Name="/tmp/controlr-chkconf" Run="/bin/bash">
+<FILE Name="/tmp/&name;-chkconf" Run="/bin/bash">
 <INLINE>
 <![CDATA[
 #!/bin/sh
 # This will check each entry in the config so nothing is missing, and if missing, sets to default
-CFGFILE=/boot/config/plugins/controlr/controlr.cfg
+CFGFILE=/boot/config/plugins/controlrd/controlrd.cfg
 [ ! `cat "$CFGFILE" | grep SERVICE` ] && echo "SERVICE=\"disable\"" >> "$CFGFILE"
-[ ! `cat "$CFGFILE" | grep ^PORT` ] && echo "PORT=\"2378\"" >> "$CFGFILE"
 [ ! `cat "$CFGFILE" | grep ^UPS` ] && echo "UPS=\"enable\"" >> "$CFGFILE"
-rm /tmp/controlr-chkconf
+rm /tmp/controlrd-chkconf
 ]]>
 </INLINE>
 </FILE>
