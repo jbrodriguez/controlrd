@@ -2,7 +2,6 @@
 # read our configuration
 source /boot/config/plugins/controlrd/controlrd.cfg
 
-vars="/boot/config/plugins/controlrd/controlrd.env"
 prog="/usr/local/emhttp/plugins/controlrd/controlrd"
 
 # stop it if it's running
@@ -10,4 +9,4 @@ killall controlrd >/dev/null 2>&1
 
 # run the app
 [[ $UPS = "enable" ]] && SHOWUPS="--show-ups" || SHOWUPS=""
-nohup sudo -H bash -c "env $(cat $vars 2>/dev/null | xargs) $prog --port $PORT" $SHOWUPS >/dev/null 2>&1 &
+nohup sudo -H bash -c "$prog $SHOWUPS >/dev/null 2>&1 &
