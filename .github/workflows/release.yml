@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      CONTROLR_PAT: ${{ secrets.CONTROLRD_PAT }}
+      CONTROLRD_PAT: ${{ secrets.CONTROLRD_PAT }}
 
     steps:
       - name: checkout public repo
