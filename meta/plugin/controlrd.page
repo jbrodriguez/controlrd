@@ -1,0 +1,88 @@
+Menu="Utilities"
+Icon="controlrd.png"
+Title="controlrd"
+---
+<?php
+$sName = "controlrd";
+$controlrd_cfg = parse_plugin_cfg("controlrd");
+$controlrd_service = isset($controlrd_cfg['SERVICE']) ? $controlrd_cfg['SERVICE'] 	: "disable";
+$controlrd_ups = isset($controlrd_cfg['UPS']) ? $controlrd_cfg['UPS'] 	: "enable";
+$controlrd_running = shell_exec("pidof controlrd | wc -w");
+$controlrd_version = shell_exec("cat /usr/local/emhttp/plugins/controlrd/VERSION | tr '\n' ' '");
+$qrcode_base64 = shell_exec("cat /tmp/qrcode.jpg | base64 | tr '\n' ' '");
+?>
+
+<script type="text/javascript">
+	var port = <?=$controlrd_port;?>;
+	if (document.location.protocol === 'https:') {
+		var iport = +port + 1
+		port = iport.toString()
+	}
+	var url = document.location.protocol + '//' + document.location.hostname + ':' + port + '/';
+	var isRunning = <?=$controlrd_running;?> === 1;
+	var version = '<?=$controlrd_version;?>';
+	var qrcode = '<?=$qrcode_base64;?>';
+	var color = isRunning ? 'color:green' : 'color:orange'
+	if (isRunning) {
+		document.write("<span style='color:green;'><b>controlrd " + version + "</b></span> <br /> <br />");
+		document.write("<img src='data:image/jpeg;base64," + qrcode + "' width=150 />")
+	} else {
+		document.write("<b><font style='color:orange;'>controlrd " + version + " (not running)</font></b>")
+	}
+</script>
+
+<form markdown="1" name="controlrd_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#file" value="controlrd/controlrd.cfg" />
+<input type="hidden" id="command" name="#command" value="" />
+
+Enable controlrd plugin :
+: <select id="SERVICE" name="SERVICE" size="1" onChange="checkRUNNING(this.form);">
+  <?=mk_option($controlrd_service, "disable", "No");?>
+  <?=mk_option($controlrd_service, "enable", "Yes");?>
+  </select>
+
+Provide UPS status :
+: <select id="UPS" name="UPS" size="1" onChange="checkRUNNING(this.form);">
+  <?=mk_option($controlrd_ups, "enable", "Yes");?>
+  <?=mk_option($controlrd_ups, "disable", "No");?>
+  </select>
+
+<input id="DEFAULT" class="stopped" type="submit" value="Default" onClick="resetDATA(this.form)">
+: <input id="btnApply" type="submit" value="Apply" onClick="verifyDATA(this.form)"><input type="button" value="Done" onClick="done()">
+</form>
+
+<script type="text/javascript">
+$(function(){
+	showStatus('<?=$sName;?>');
+	checkRUNNING(document.controlrd_settings);
+});
+
+function isNumber(value) {
+   return typeof value === 'number' && isFinite(value);
+}
+
+function resetDATA(form) {
+	form.UPS.value = "enable"
+}
+
+function checkRUNNING(form) {
+	if (<?=$controlrd_running;?> == 1)
+	{
+		$(".stopped").prop("disabled", true);
+		form.btnApply.disabled = "disabled";
+   }
+   else
+	$(".stopped").prop("disabled", (form.SERVICE.value == "enable"));
+	if (form.SERVICE.value == "enable")
+		form.command.value = "/usr/local/emhttp/plugins/controlrd/scripts/start";
+	else {
+		form.command.value = "/usr/local/emhttp/plugins/controlrd/scripts/stop";
+		form.btnApply.disabled = (form.SERVICE.value == "enable");
+	}
+}
+
+function verifyDATA(form) {
+	form.SERVICE.value = form.SERVICE.value.replace(/ /g,"_");
+	form.UPS.value = form.UPS.value.replace(/ /g,"_");
+}
+</script>
