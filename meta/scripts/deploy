@@ -13,15 +13,15 @@ version=$(date '+%Y.%m.%d')
 go build fmt
 env CGO_ENABLED=0 go build -ldflags "-X main.Version=v$version$patch" -gcflags "all=-trimpath=$GOPATH" -v -o meta/plugin/$name
 
-echo "v$version$patch" >meta/plugin/VERSION
+echo "$version$patch" >meta/plugin/VERSION
 
 cd meta
 mv plugin $name
-tar --owner=root --group=root -czvf ../$name-v$version$patch.tgz $name
+tar --owner=root --group=root -czvf ../$name-$version$patch.tgz $name
 cd ..
 
 # Calculate the MD5 checksum for the plugin
-md5=$(md5sum $name-v$version$patch.tgz | awk '{print $1}')
+md5=$(md5sum $name-$version$patch.tgz | awk '{print $1}')
 
 # Get the latest git tag
 latest_tag=$(git describe --tags --abbrev=0)
@@ -40,8 +40,8 @@ awk -v version="v$version$patch" -v md5="$md5" -v changes="$changes" '
 ' meta/template/$name.plg >$name.plg
 
 # tag the release
-git tag v$version$patch
-git push origin v$version$patch
+git tag $version$patch
+git push origin $version$patch
 
 # release the plugin
 # auth with the public repo pat
@@ -55,4 +55,3 @@ gh release upload v$version$patch ./$name-v$version$patch.tgz --clobber --repo "
 
 # Upload the XML artifact
 gh release upload v$version$patch ./$name.plg --clobber --repo "github.com/jbrodriguez/$name"
-
