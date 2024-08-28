@@ -13,12 +13,6 @@ $qrcode_base64 = shell_exec("cat /tmp/qrcode.jpg | base64 | tr '\n' ' '");
 ?>
 
 <script type="text/javascript">
-	var port = <?=$controlrd_port;?>;
-	if (document.location.protocol === 'https:') {
-		var iport = +port + 1
-		port = iport.toString()
-	}
-	var url = document.location.protocol + '//' + document.location.hostname + ':' + port + '/';
 	var isRunning = <?=$controlrd_running;?> === 1;
 	var version = '<?=$controlrd_version;?>';
 	var qrcode = '<?=$qrcode_base64;?>';
