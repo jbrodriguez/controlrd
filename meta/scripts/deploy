@@ -11,7 +11,7 @@ version=$(date '+%Y.%m.%d')
 
 # make local
 go build fmt
-env CGO_ENABLED=0 go build -ldflags "-X main.Version=v$version$patch" -gcflags "all=-trimpath=$GOPATH" -v -o meta/plugin/$name
+env CGO_ENABLED=0 go build -ldflags "-X main.Version=$version$patch" -gcflags "all=-trimpath=$GOPATH" -v -o meta/plugin/$name
 
 echo "$version$patch" >meta/plugin/VERSION
 
@@ -30,7 +30,7 @@ latest_tag=$(git describe --tags --abbrev=0)
 changes=$(git log --oneline $latest_tag..HEAD --pretty="- %s")
 
 # Use awk for replacements and generate plugin file
-awk -v version="v$version$patch" -v md5="$md5" -v changes="$changes" '
+awk -v version="$version$patch" -v md5="$md5" -v changes="$changes" '
   {
     gsub(/##version##/, version);
     gsub(/##md5##/, md5);
@@ -44,14 +44,11 @@ git tag $version$patch
 git push origin $version$patch
 
 # release the plugin
-# auth with the public repo pat
-echo $CONTROLRD_PAT | gh auth login --with-token
-
 # Create a release with the tag name
-gh release create v$version$patch --notes "$changes" --repo "github.com/jbrodriguez/$name"
+gh release create $version$patch --notes "$changes" --repo "github.com/jbrodriguez/$name"
 
 # Upload the TGZ artifact
-gh release upload v$version$patch ./$name-v$version$patch.tgz --clobber --repo "github.com/jbrodriguez/$name"
+gh release upload $version$patch ./$name-$version$patch.tgz --clobber --repo "github.com/jbrodriguez/$name"
 
 # Upload the XML artifact
-gh release upload v$version$patch ./$name.plg --clobber --repo "github.com/jbrodriguez/$name"
+gh release upload $version$patch ./$name.plg --clobber --repo "github.com/jbrodriguez/$name"
