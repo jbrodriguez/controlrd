@@ -15,7 +15,7 @@ There are 2 ways to install this application
 - Plugins Tab (manual)<br/>
   Go to the Plugins tab<br/>
   Click on Install Plugin<br/>
-  Paste the following address in the input field: <https://github.com/jbrodriguez/controlr/releases/latest/download/controlrd.plg><br/>
+  Paste the following address in the input field: <https://github.com/jbrodriguez/controlrd/releases/latest/download/controlrd.plg><br/>
   Click Install
 
 ## Running the app
