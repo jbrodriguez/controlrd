@@ -13,26 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      CONTROLRD_PAT: ${{ secrets.CONTROLRD_PAT }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
-      - name: checkout public repo
-        uses: actions/checkout@v4
-        with:
-          repository: jbrodriguez/controlrd
-          token: ${{ env.CONTROLRD_PAT }}
-
-      - name: commit version
-        run: |
-          git config --global user.email "jbrodriguez@gmail.com"
-          git config --global user.name "Juan B. Rodriguez"
-          echo "v$(date '+%Y.%m.%d')${{ github.event.inputs.patch }}" > VERSION
-          git add .
-          git commit -m "chore: bump version to v$(date '+%Y.%m.%d')${{ github.event.inputs.patch }}"
-          export GITHUB_TOKEN="${{ secrets.CONTROLRD_PAT }}"
-          git push
-
-      - name: checkout private repo
+      - name: checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
