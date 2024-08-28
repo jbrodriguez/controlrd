@@ -9,4 +9,4 @@ killall controlrd >/dev/null 2>&1
 
 # run the app
 [[ $UPS = "enable" ]] && SHOWUPS="--show-ups" || SHOWUPS=""
-nohup sudo -H bash -c "$prog $SHOWUPS >/dev/null 2>&1 &
+nohup sudo -H bash -c "$prog $SHOWUPS" >/dev/null 2>&1 &
