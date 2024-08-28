@@ -10,6 +10,8 @@ import (
 func (a *Api) buildQRCode() {
 	origin := a.getOrigin()
 
+	logger.Blue(" origin %+v", origin)
+
 	o, err := json.Marshal(origin)
 	if err != nil {
 		logger.Yellow("unable to marshal origin: %s", err)
