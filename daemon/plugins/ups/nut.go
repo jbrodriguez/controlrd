@@ -27,7 +27,7 @@ import (
 
 const (
 	nutBinary string = "/usr/bin/upsc"
-	nutConfig string = "/boot/config/plugins/nut-dw/nut.cfg"
+	nutConfig string = "/boot/config/plugins/nut-dw/nut-dw.cfg"
 )
 
 // Nut -
