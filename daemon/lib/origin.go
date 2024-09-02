@@ -32,7 +32,7 @@ func GetOrigin() (*dto.Origin, error) {
 	usessl := getValueOrDefault(vars, "USE_SSL", "no")
 	if usessl == "no" {
 		origin.Protocol = "http"
-		origin.Host = getValueOrDefault(nginx, "NGINX_LANMDNS", origin.Address)
+		origin.Host = getValueOrDefault(nginx, "NGINX_LANNAME", origin.Address)
 		origin.Port = getValueOrDefault(vars, "PORT", "80")
 	} else {
 		origin.Protocol = "https"
