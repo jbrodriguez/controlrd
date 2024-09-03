@@ -89,6 +89,12 @@ func (a *Api) handleConnection(conn net.Conn) {
 		reply := a.getInfo()
 		resp, _ = json.Marshal(reply)
 
+	case "get_logs":
+		params := req.Params
+		logType := params["logType"]
+		reply := a.getLogs(logType)
+		resp, _ = json.Marshal(reply)
+
 	case "get_origin":
 		reply := a.getOrigin()
 		resp, _ = json.Marshal(reply)
