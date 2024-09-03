@@ -26,10 +26,10 @@ $socket_path = "/var/run/controlrd-api.sock";
 $action = $_POST['action'] ?? '';
 $params = !empty($_POST['params']) ? json_decode($_POST['params'], true) : new stdClass();
 
-$decoded = json_decode($_POST['params']);
+/*$decoded = json_decode($_POST['params'], true);*/
 
-controlrd_log("received params {$_POST['params']}");
-/*controlrd_log("received params {$decoded} "." and ${params}");*/
+/* controlrd_log("received params {$_POST['params']}"); */
+/*controlrd_log("received decoded ". $decoded ." and raw ". $_POST['params']);*/
 
 $socket = fsockopen("unix://{$socket_path}", -1, $errno, $errstr, 30);
 if (!$socket) {
